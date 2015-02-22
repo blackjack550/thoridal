@@ -1,0 +1,68 @@
+#!/bin/bash
+KEY="$HOME/.key/securecrt"
+
+
+env_build(){
+ssh-agent 
+ssh-add $KEY
+}
+env_install(){
+if [ ! -d $HOME/.key ];then
+	mkdir $HOME/.key
+fi
+cat << EOF > $KEY
+-----BEGIN RSA PRIVATE KEY-----
+Proc-Type: 4,ENCRYPTED
+DEK-Info: DES-EDE3-CBC,3514126590ECA25F
+
+7cu7Hp34pPuEm2m5NA8QlZMmGDcr2NPcCgnmwz4pjfHimJAYNRspuQMRDmV1cSqp
+BYVKo2pQoY6+fSk3G/7hR+6jWOD50lLVwHhaUPweYXhcRVMnZ+X76aJ1EwTmNZje
+vsEyh8D8z/Ve+SQw3dwxm/MXJuTMoW7IJSqSwJ9QGHYJ34fKufAtwoaOlQqAXfDk
+Seii2Yi+dHXLocFed3/uFlqqoY6aQJI8HfDoWr6V51QvG6Lp7RdW/iUTOlPEO12L
+U28PHflvFR5HxSLRzTjmhk1kfz+SEcYq07dZ3o/LKd6n4hqbx1iPzCjay4MSBPTL
+dIvLPyXhIwXAd4vT2gQDgegEDwGHFOxlpBwesByjjZmX2IkgHCBSNUg7fkP69WJh
+QwCJwayvQxH0Dyeb2VFf0A+CN6YilWQr6yi8QOAPC1LnerpwI06GE8unglpA/dkT
+gLJkkdkdXvUct2QOIjKOyPswYmqqY3/MefMYG+LqtcvBU55E5xedXxwJ92hekcpB
+Jq2UEKrmjVkHNcuGilfDu+6bPDdi+wAwNq8wkH6EcT/YE7sAHsLtV0mS/LV0UcB/
+lfP2qg7aO8Eh5FZ7316ags1DRvBHcgm1saVS92iTLRCDkE6Qp/IIJ+q7SpNZjeMA
+G7tJ+EpNaSkkkBcRGpbSsAZSEO3TV7hBM/maKIwMXfoPTPsjprvZ7jLRKxKiKG6b
+MevFeYdN4uGz1WL9XJ7GY4SAXWElbrOj46cH8JhvT/ppdWwjIPQhgUaDIvALhbCP
+ZLzXmZXKa7cHRa/X+vQOgU3xGGvT5u73gGfRcbdiuIw=
+-----END RSA PRIVATE KEY-----
+EOF
+chmod 600 $KEY
+}
+
+case $1 in
+	host)
+		if [ -z $2 ];then
+			echo "please input ip:port string!"
+		else
+			host=$(echo "$2"|awk -F: '{print $1}')
+			port=$(echo "$2"|awk -F: '{print $2}')
+			user=$(echo "$2"|awk -F: '{print $3}')
+			if [ -z $user ];then
+				if [ -z $port ];then
+					ssh root@$host
+				else
+					ssh -p $port root@$host
+				fi
+			else
+				if [ -z $port ];then
+					ssh $user@$host
+				else
+					ssh -p $port $user@$host
+				fi
+			fi
+		fi
+		;;
+	agent)
+		env_build
+		;;
+	install)
+		env_install
+		;;
+	*)
+		echo "Usage:$0 (host ip:port:user|agent|install)"
+		;;
+esac
